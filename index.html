@@ -379,6 +379,7 @@ function closeCart(){document.getElementById('shade').classList.remove('on');doc
 // Вход через бота: код → t.me/бот?start=login_КОД → покупатель жмёт Start → сайт забирает сессию.
 // Не зависит от telegram.org в браузере (его режут у части операторов). Виджет — запасной вариант, если загрузится.
 let loginPoll=null;
+function demoLogin(){const go=document.getElementById('tgGo');go.style.pointerEvents='';go.style.opacity='';user={name:'Гость',tg:'демо-режим',demo:true};S.set('rz_user',user);document.getElementById('tgModal').classList.remove('on');renderWho();drawer()}
 function login(then){afterLogin=then||null;document.getElementById('tgModal').classList.add('on');startBotLogin();
   const box=document.getElementById('tgw');if(box.childElementCount)return;
   const sc=document.createElement('script');sc.async=true;sc.src='https://telegram.org/js/telegram-widget.js?22';
@@ -399,7 +400,7 @@ function startBotLogin(){
           S.set('rz_user',user);document.getElementById('tgModal').classList.remove('on');renderWho();drawer();if(afterLogin)afterLogin()}
         else if(c.error==='expired'){clearInterval(loginPoll);startBotLogin()}
       }).catch(()=>{})},2000);
-  }).catch(()=>{w.textContent='Нет связи с сервером, попробуйте ещё раз'})}
+  }).catch(()=>{demoLogin()})}
 document.getElementById('tgGo').addEventListener('click',()=>{document.getElementById('tgWait').textContent='Ждём подтверждения из Telegram… Вернитесь сюда после нажатия «Запустить».'});
 window.onTgAuth=u=>{user={name:[u.first_name,u.last_name].filter(Boolean).join(' ')||'Гость',tg:u.username?'@'+u.username:'Telegram',auth:u};
   S.set('rz_user',user);document.getElementById('tgModal').classList.remove('on');renderWho();drawer();if(afterLogin)afterLogin()};
@@ -420,6 +421,7 @@ document.addEventListener('click',e=>{
     const err=document.getElementById('err');
     if(!pick.time){err.textContent='Выберите время, когда заберёте заказ';err.style.display='block';return}
     if(!user){login(()=>document.getElementById('send').click());return}
+    if(window.__DEMO||user.demo){const dbody=document.getElementById('dbody');cart={};S.set('rz_cart',cart);document.querySelectorAll('.cnt').forEach(e=>e.textContent=0);grid();stage='done';dbody.innerHTML=`<div class="done"><h3>Это демонстрация 🎬</h3><p>В реальном магазине заказ улетел бы продавцу в Telegram, а клиенту пришло бы подтверждение.</p><p style="color:var(--muted);margin-top:12px">Хотите так же для своего дела? Напишите нам — соберём под ваш бизнес.</p></div>`;document.getElementById('dfoot').innerHTML='<a class="btn" href="https://t.me/mira_sunside" target="_blank" style="text-decoration:none">Обсудить проект в Telegram</a>';return}
     const d=new Date(pick.day+'T00:00'), when=`${fmtDay(d)}, ${d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}, ${pick.time}`;
     const note=document.getElementById('note').value.trim();
     t.disabled=true;t.textContent='Отправляем…';
@@ -435,7 +437,7 @@ document.addEventListener('click',e=>{
 document.getElementById('shade').onclick=closeCart;document.getElementById('close').onclick=closeCart;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();document.getElementById('tgModal').classList.remove('on')}});
 renderWho();tabs();save();
-function loadState(){fetch(API+'/api/state',{cache:'no-store'}).then(r=>r.json()).then(j=>{ST={stop:j.stop||[],prices:j.prices||{},closed:j.closed||{},paused:!!j.paused};save()}).catch(()=>{})}
+function loadState(){fetch(API+'/api/state',{cache:'no-store'}).then(r=>r.json()).then(j=>{ST={stop:j.stop||[],prices:j.prices||{},closed:j.closed||{},paused:!!j.paused};save()}).catch(()=>{window.__DEMO=true})
 loadState();setInterval(loadState,60000);
 
 if('serviceWorker' in navigator&&location.hostname.endsWith('razlivnoy-priobye.ru'))navigator.serviceWorker.register('/sw.js').catch(()=>{});
